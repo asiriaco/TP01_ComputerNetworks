@@ -18,6 +18,33 @@ void usage(int argc, char **argv) {
 	printf("example: %s 127.0.0.1 51511\n", argv[0]);
 	exit(EXIT_FAILURE);
 }
+//METHOD TO EXTRACT INFO FROM FILE
+char* extract_from_file(char *filename){
+	if(filename[strlen(filename)-1] == '\n'){
+		filename[strlen(filename)-1] = '\0';
+	}
+	FILE *fp;
+	fp = fopen(filename, "r");
+	if (fp == NULL){
+		logexit("file not found");
+	}
+
+	char* result = (char*)malloc(1024 * sizeof(char));
+	char line[1024];
+
+	while(fgets(line, 1024, fp) != NULL){
+		size_t len = strlen(line);
+		if (line[len-1] == '\n'){
+			line[len-1] = ' ';
+		}
+		strcat(result, line);
+	}
+
+
+	fclose(fp);
+	return result;
+
+}
 
 char* parse_message(char *buf){
 
@@ -58,18 +85,8 @@ char* parse_message(char *buf){
 		//FILE
 		else if (strcmp(init_command, "file") == 0){
 			char* file = strtok(NULL, "\0");
-			if(file[strlen(file)-1] == '\n'){
-				file[strlen(file)-1] = '\0';
-			}
-			FILE *fp;
-			fp = fopen(file, "r");
-			if (fp == NULL){
-				logexit("file not found");
-			}
-			fgets(info, 1024, fp);
-			fclose(fp);
-
-			strcpy(aux, info);
+			aux = extract_from_file(file);
+			strcpy(info, aux);
 		}
 		else{
 			exit(EXIT_FAILURE);
@@ -82,6 +99,7 @@ char* parse_message(char *buf){
 		else{
 			message = "ERROR";
 		}
+		
 	}
 
 
@@ -113,18 +131,8 @@ char* parse_message(char *buf){
 		//FILE
 		else if (strcmp(init_command, "file") == 0){
 			char* file = strtok(NULL, "\0");
-			if(file[strlen(file)-1] == '\n'){
-				file[strlen(file)-1] = '\0';
-			}
-			FILE *fp;
-			fp = fopen(file, "r");
-			if (fp == NULL){
-				logexit("file not found");
-			}
-			fgets(info, 1024, fp);
-			fclose(fp);
-
-			strcpy(aux, info);
+			aux = extract_from_file(file);
+			strcpy(info, aux);
 		}
 		else{
 			exit(EXIT_FAILURE);
@@ -223,10 +231,10 @@ int main(int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 
-		    if (strncmp(message, "kill", 4) == 0){
-				close(s);
-				exit(EXIT_SUCCESS);
-            }
+		if (strncmp(message, "kill", 4) == 0){
+			close(s);
+			exit(EXIT_SUCCESS);
+        }
 
 		memset(buf, 0, BUFSZ);
 		if(count != 0){	
