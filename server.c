@@ -49,7 +49,6 @@ char* insert_sensors_data(char* info, char *opmode){
     else{
         rooms[number].installed_sensors = 1;
         char* info = strtok(NULL, "\0");
-        printf("info: %s\n", info);
         rooms[number].info = strdup(info);
         char register_message[BUFSZ] = "";
         memcpy(register_message, (strcmp(opmode, "INI_REQ") == 0) ? "OK 02" : "OK 04", sizeof(register_message));
@@ -124,36 +123,39 @@ char* parse_message(char *buf){
         }
         else{
             char register_message[BUFSZ] = "";
-            printf("sala %d: %s", rooms[0].number, rooms[0].info);
             sprintf(register_message, "sala %d: %s", rooms[number].number, rooms[number].info);
             message = register_message;
         }
     }
 
     else if (strcmp(command, "INF_REQ") == 0){
-        char* register_message = malloc(1024);
-        register_message = "salas:";
+        char register_message[BUFSZ] = "salas:";
         int empty = 1;
-        printf("OK1\n");
-        for (int i = 0; i < 7; i++){
+
+        for (int i = 0; i < 8; i++){
             if(rooms_control[i] == 1){
                 empty = 0;
                 break;            
             }
         }
-        printf("OK2\n");
+
         if(empty){
             char error_message[BUFSZ] = "ERROR 03";
             message = error_message;
         }
         else{
-            for (int i = 0; i < 7; i++){
+            for (int i = 0; i < 8; i++){
                 if(rooms_control[i] == 1){
-                    char *info = "";
-                    sprintf(info, " %d (%s)", rooms[i].number, rooms[i].info);
+                    char info[BUFSZ] = "";
+                    char *aux = strdup(rooms[i].info);
+                    if(aux[strlen(aux) - 1] == '\n'){
+                        aux[strlen(aux) - 1] = '\0';
+                    }
+                    sprintf(info, " %d (%s)", rooms[i].number, aux);
                     strcat(register_message, info);
                 }
             }
+            register_message[strlen(register_message)] = '\n';
             message = register_message;
         }
     }
@@ -217,10 +219,14 @@ int main(int argc, char **argv) {
 
             size_t count = recv(csock, buf, BUFSZ - 1, 0);
             if (count!= 0){
-                printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, buf);
+                char *message = strdup(buf);
+                if (message[strlen(message) - 1] == '\n'){
+                    message[strlen(message) - 1] = '\0';
+                }
+                printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, message);
             }
             else{
-                continue;
+                break;
             }
 
             if (strncmp("kill", buf, 4) == 0){

@@ -14,27 +14,22 @@ void logerror(int code){
     switch (code){
         case 01:
             printf("sala inválida\n");
-            exit(EXIT_FAILURE);
             break;
         case 02:
             printf("sala já existe\n");
-            exit(EXIT_FAILURE);
+
             break;
         case 03:
             printf("sala inexistente\n");
-            exit(EXIT_FAILURE);
             break;
         case 04:
             printf("sensores inválidos\n");
-            exit(EXIT_FAILURE);
             break;
         case 05:
             printf("sensores já instalados\n");
-            exit(EXIT_FAILURE);
             break;
         case 06:
             printf("sensores não instalados\n");
-            exit(EXIT_FAILURE);
             break;
     }
 }
