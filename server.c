@@ -162,7 +162,7 @@ char* parse_message(char *buf){
                 }
             }
             register_message[strlen(register_message)] = '\n';
-            message = register_message;
+            message = strdup(register_message);
         }
     }
     return message;
@@ -243,9 +243,7 @@ int main(int argc, char **argv) {
             }
             //PARSING MESSAGE AND PROCESSING ITS INFORMATION
             message = parse_message(buf);
-
-            sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
-
+        
             //SENDING RESPONSE TO CLIENT
             count = send(csock, message, strlen(message) + 1, 0);
             if (count != strlen(message) + 1) {
