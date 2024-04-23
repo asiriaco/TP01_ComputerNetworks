@@ -10,6 +10,7 @@ void logexit(const char *msg) {
 	exit(EXIT_FAILURE);
 }
 
+//METHOD TO MAP ERROR CODES TO ERROR MESSAGES
 void logerror(int code){
     switch (code){
         case 01:
@@ -34,6 +35,7 @@ void logerror(int code){
     }
 }
 
+//METHOD TO VALIDATE INFO
 int is_info_valid(char *info){
 
     char* room_number = strtok(info, " ");
@@ -41,10 +43,13 @@ int is_info_valid(char *info){
     regex_t regex;
     char* expression = "^([0-3][0-9]|40)\\s([0-9]{2}|100)\\s([1-4][0-2]\\s){3}([1-4][0-2])$";
     
+    //VALIDATE ROOM NUMBER
     if(number > 7 || number < 0){
         logerror(01);
         return 0;
     }
+
+    //VALIDATE SENSORS INFO
     else{
         if (regcomp(&regex, expression, REG_EXTENDED|REG_NOSUB) != 0) {
             logexit("regcomp");
@@ -67,6 +72,7 @@ int is_info_valid(char *info){
     return 0;
 }
 
+//METHOD TO MAP OK CODES TO OK MESSAGES
 void logok(int code){
     switch (code){
         case 01:

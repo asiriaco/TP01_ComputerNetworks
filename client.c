@@ -18,6 +18,7 @@ void usage(int argc, char **argv) {
 	printf("example: %s 127.0.0.1 51511\n", argv[0]);
 	exit(EXIT_FAILURE);
 }
+
 //METHOD TO EXTRACT INFO FROM FILE
 char* extract_from_file(char *filename){
 	if(filename[strlen(filename)-1] == '\n'){
@@ -40,10 +41,12 @@ char* extract_from_file(char *filename){
 		strcat(result, line);
 	}
 
+	if(result[strlen(result)-1] == ' '){
+		result[strlen(result)-1] = '\n';
+	}
 
 	fclose(fp);
 	return result;
-
 }
 
 char* parse_message(char *buf){
@@ -163,29 +166,34 @@ char* parse_message(char *buf){
 			exit(EXIT_FAILURE);
 		}
     }
-
+	//IN CASE OF INVALID COMMANDS, THE CLIENT GOES DOWN WITHOUT MESSAGE
     else{
         exit(EXIT_FAILURE);
 	}
+
 	return message;
 }
 
+//METHOD TO PARSE RESPONSE FROM SERVER
 void parse_return(char *buf){
-
+	//OK CASE
 	if (strncmp(buf, "OK", 2) == 0){
 		char* message = strtok(buf, " ");
 		message = strtok(NULL, " ");
 		logok(atoi(message));
 	}
+	//ERROR CASE
 	else if (strncmp(buf, "ERROR", 5) == 0){
 		char* message = strtok(buf, " ");
 		message = strtok(NULL, " ");
 		logerror(atoi(message));
 	}
+	//PRINT ROOMS INFO
 	else {
 		printf("%s", buf);
 	}
 }
+
 
 int main(int argc, char **argv) {
 	if (argc < 3) {
@@ -217,29 +225,36 @@ int main(int argc, char **argv) {
 		char* message = "";
 		memset(buf, 0, BUFSZ);
 
+		//GET USER INPUT
 		printf("mensagem> ");
 		fgets(buf, BUFSZ-1, stdin);
 		
+		//PARSE MESSAGE FROM USER
 		message = parse_message(buf);
 
+		//CHECKING IF MESSAGE IS VALID
 		if(strncmp(message, "ERROR", 5) == 0){
 			continue;
 		}
 
+		//SENDING MESSAGE TO SERVER
 		size_t count = send(s, message, strlen(message)+1, 0);
 		if (count != strlen(message)+1) {
 			exit(EXIT_FAILURE);
 		}
 
+		//KILLING ME SOFTLY
 		if (strncmp(message, "kill", 4) == 0){
 			close(s);
 			exit(EXIT_SUCCESS);
         }
 
+		//RECIEVING RESPONSE FROM SERVER
 		memset(buf, 0, BUFSZ);
 		if(count != 0){	
 			count = recv(s, buf, BUFSZ, 0);
 		}
+		//PARSING RESPONSE AND PROCESSING ITS INFORMATION
 		parse_return(buf);
 	}
 	close(s);

@@ -29,7 +29,7 @@ struct client_data {
     int csock;
     struct sockaddr_storage storage;
 };
-
+//METHOD TO INSERT DATA INTO ROOMS
 char* insert_sensors_data(char* info, char *opmode){
     char *message = "";
     char* room_number = strtok(NULL, " ");
@@ -57,11 +57,12 @@ char* insert_sensors_data(char* info, char *opmode){
     return message;
 }
 
+//METHOD TO PARSE MESSAGE RECIVED FROM CLIENT
 char* parse_message(char *buf){
-
     char *command = strtok(buf, " ");
     char *message = "";
 
+    //REGISTER ROOM
     if (strcmp(command, "CAD_REQ") == 0){
 
         char* room_number = strtok(NULL, " ");
@@ -83,10 +84,12 @@ char* parse_message(char *buf){
         }
     }
 
+    //INIT SENSORS DATA
     else if (strcmp(command, "INI_REQ") == 0){
         message = insert_sensors_data(buf, command);
     }
 
+    //SHUT SENSORS DOWN
     else if (strcmp(command, "DES_REQ") == 0){
         char* room_number = strtok(NULL, " ");
         int number = atoi(room_number);
@@ -106,10 +109,12 @@ char* parse_message(char *buf){
         }
     }
 
+    //ALTER SENSORS DATA
     else if (strcmp(command, "ALT_REQ") == 0){
         message = insert_sensors_data(buf, command);
     }
 
+    //LOAD SENSORS DATA FROM A SINGLE ROOM
     else if (strcmp(command, "LOAD_REQ") == 0){
         char* room_number = strtok(NULL, " ");
         int number = atoi(room_number);
@@ -128,6 +133,7 @@ char* parse_message(char *buf){
         }
     }
 
+    //LOAD SENSORS DATA FROM ALL ROOMS
     else if (strcmp(command, "INF_REQ") == 0){
         char register_message[BUFSZ] = "salas:";
         int empty = 1;
@@ -216,28 +222,31 @@ int main(int argc, char **argv) {
         while(1){
             memset(buf, 0, BUFSZ);
 
-
+            //RECIEVING MESSAGE FROM CLIENT
             size_t count = recv(csock, buf, BUFSZ - 1, 0);
             if (count!= 0){
                 char *message = strdup(buf);
                 if (message[strlen(message) - 1] == '\n'){
                     message[strlen(message) - 1] = '\0';
                 }
-                printf("[msg] %s, %d bytes: %s\n", caddrstr, (int)count, message);
+                printf("[msg] %s, %d bytes: %s\n", caddrstr,(int)count, message);
             }
             else{
                 break;
             }
 
+            //KILLING ME SOFTLY
             if (strncmp("kill", buf, 4) == 0){
                 close(csock);
                 close(s);
                 exit(EXIT_SUCCESS);
             }
+            //PARSING MESSAGE AND PROCESSING ITS INFORMATION
             message = parse_message(buf);
 
             sprintf(buf, "remote endpoint: %.1000s\n", caddrstr);
 
+            //SENDING RESPONSE TO CLIENT
             count = send(csock, message, strlen(message) + 1, 0);
             if (count != strlen(message) + 1) {
                 exit(EXIT_FAILURE);
